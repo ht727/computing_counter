@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huangliutan.dao.SaveDao">
+    <!--一定要注意SQL语句不要写错了，今天就在这里耗了很久，占位符只有#{}-->
+    <insert id="insert" parameterType="com.huangliutan.entity.Records">
+
+    insert into records(id,periodNumber,repaymentDate,monthlyPrincipal,monthlyInterest,monthlyRent,totalA)
+    values(
+    #{id},
+    #{periodNumber},
+    #{repaymentDate},
+    #{monthlyPrincipal},
+    #{monthlyInterest},
+    #{monthlyRent},
+    #{totalA})
+    </insert>
+</mapper>

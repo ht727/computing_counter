@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
+    <!--引入外部资源-->
+    <context:property-placeholder location="classpath:config/jdbc.properties"/>
+
+    <!--声明连接池，使用的是阿里巴巴的Druid连接池-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <property name="maxActive" value="${jdbc.maxActive}"/>
+    </bean>
+
+    <!--声明SqlSessionFactory，使用的是mybatis官方提供的mybatis-spring-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation" value="classpath:config/mybatis-config.xml"/>
+    </bean>
+
+    <!--创建dao-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+        <property name="basePackage" value="com.huangliutan.dao"/>
+    </bean>
+
+    <!--创建service，不使用注解-->
+    <bean id="saveService" class="com.huangliutan.service.impl.SaveServiceImpl">
+        <property name="saveDao" ref="saveDao"/>
+    </bean>
+
+    <bean id="computeService" class="com.huangliutan.service.impl.ComputeServiceImpl"/>
+
+    <!--声明事务管理器，告诉spring使用mybatis技术访问数据库-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--配置事务属性-->
+    <tx:advice id="myAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="insert" propagation="REQUIRED" isolation="DEFAULT" read-only="false"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <!--配置代理,使得Pointcut和advice建立联系-->
+    <aop:config>
+        <aop:pointcut id="myPt" expression="execution(* com.huangliutan.service.impl.SaveServiceImpl.insert(..))"/>
+        <aop:advisor advice-ref="myAdvice" pointcut-ref="myPt"/>
+    </aop:config>
+</beans>
